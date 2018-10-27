@@ -27,7 +27,9 @@ def main():
 
     model = OmniglotModel(args.classes, **model_kwargs(args))
 
-    with tf.Session() as sess:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = args.allow_growth
+    with tf.Session(config=config) as sess:
         if not args.pretrained:
             print('Training...')
             train(sess, model, train_set, test_set, args.checkpoint, **train_kwargs(args))
