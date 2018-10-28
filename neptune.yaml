@@ -1,7 +1,7 @@
 name: tensorflow_test
 parameters:
     allow_growth: True
-project: deepsense-ai-research/meta-learning-reptile-dirty
+project: deepsense-ai-research/meta-learning-reptile
 exclude:
     - .git
     - .gitignore
