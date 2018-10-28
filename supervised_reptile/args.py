@@ -3,6 +3,7 @@ Command-line argument parsing.
 """
 
 import argparse
+import bunch
 from functools import partial
 
 import tensorflow as tf
@@ -42,6 +43,7 @@ def argument_parser():
     parser.add_argument('--sgd', help='use vanilla SGD instead of Adam', action='store_true')
     parser.add_argument('--allow-growth', help='allow_growth gpu option', action='store_true')
     parser.add_argument('--mode', help='mode for reproducing results', default='', type=str)
+    parser.add_argument('--debug', help='quick training for debug', action='store_true')
     return parser
 
 def model_kwargs(parsed_args):
@@ -121,6 +123,8 @@ def default_args():
         'foml_tail': None,
         'sgd': False,
         'allow_growth': False,
+        'mode': '',
+        'debug': False,
     }
 
 def create_omniglot_mode(shots, classes, transductive):
@@ -171,8 +175,8 @@ def create_miniimagenet_mode(shots, transductive):
     }
 
 
-def reproduce(mode):
-    args = default_args()
+def update_with_mode(args, neptune_context):
+    mode = args['mode']
     modes = {}
     for shots in [1, 5]:
         for classes in [5, 20]:
@@ -183,10 +187,22 @@ def reproduce(mode):
         for transductive in [False, True]:
             m = create_miniimagenet_mode(shots, transductive)
             modes[m['mode_name']] = m
-    print(modes)
-    assert mode in modes
-    args.update(modes[mode])
+    if mode in modes.keys():
+        args.update(modes[mode])
+        neptune_context.tags.append(mode)
+    if args['debug']:
+        args['meta_iters'] = 100
+        args['eval_samples'] = 100
+        neptune_context.tags.append('debug')
     return args
+
+def neptune_args(neptune_context):
+    params = neptune_context.params
+    args = default_args()
+    for param in params:
+        args[param] = params[param]
+    args = update_with_mode(args, neptune_context)
+    return bunch.Bunch(args)
 
 def _args_reptile(parsed_args):
     if parsed_args.foml:

@@ -1,8 +1,9 @@
-name: reproduce_o15t
+name: tensorflow_test
 parameters:
-    input: "../../omniglot"
-    config: "o15t"
-project: deepsense-ai-research/meta-learning-reptile
+    allow_growth: True
+    mode: "o15"
+    debug: True
+project: deepsense-ai-research/meta-learning-reptile-dirty
 exclude:
     - .git
     - .gitignore
@@ -13,6 +14,11 @@ exclude:
     - run_many.py
     - plots
     - README.md
+    - original_reproduction
+    - data
+    - metadata
+    - fetch_data.sh
+    - fetch_local.sh
+    - setup.py
+    - web
 tags:
-    - o15t
-    - reproduction
