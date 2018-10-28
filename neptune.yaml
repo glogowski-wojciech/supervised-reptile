@@ -1,8 +1,6 @@
 name: tensorflow_test
 parameters:
     allow_growth: True
-    mode: "o15"
-    debug: True
 project: deepsense-ai-research/meta-learning-reptile-dirty
 exclude:
     - .git
@@ -21,4 +19,12 @@ exclude:
     - fetch_local.sh
     - setup.py
     - web
-tags:
+    - ckpt_o15
+    - ckpt_o15t
+    - ckpt_o55
+    - ckpt_o55t
+    - ckpt_o120
+    - ckpt_o120t
+    - ckpt_o520
+    - ckpt_o520t
+# tags:

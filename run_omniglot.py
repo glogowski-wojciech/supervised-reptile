@@ -45,8 +45,12 @@ def main():
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)
-        final_train_channel.send(evaluate(sess, model, train_set, **eval_kwargs))
-        final_test_channel.send(evaluate(sess, model, test_set, **eval_kwargs))
+        final_train_accuracy = evaluate(sess, model, train_set, **eval_kwargs)
+        final_test_accuracy = evaluate(sess, model, test_set, **eval_kwargs)
+        print('final_train_accuracy:', final_train_accuracy)
+        print('final_test_accuracy:', final_test_accuracy)
+        final_train_channel.send(final_train_accuracy)
+        final_test_channel.send(final_test_accuracy)
 
 if __name__ == '__main__':
     main()
