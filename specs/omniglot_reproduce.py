@@ -29,8 +29,7 @@ def create_experiment_for_spec(parameters):
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
     dataset=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
-    # mode=['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t'],
-    mode=['o15'],
+    mode=['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t'],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)
