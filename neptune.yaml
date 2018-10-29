@@ -31,4 +31,5 @@ exclude:
     - ckpt_m15t
     - ckpt_m55
     - ckpt_m55t
+    - tmp
 # tags:
