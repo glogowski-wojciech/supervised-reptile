@@ -1,7 +1,7 @@
 name: tensorflow_reptile_reproduce
 parameters:
     allow_growth: True
-    dataset: 'data/omniglot'
+    dataset: '../../data/omniglot'
 project: deepsense-ai-research/meta-learning-reptile-dirty
 exclude:
     - .git

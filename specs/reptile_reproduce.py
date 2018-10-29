@@ -1,8 +1,7 @@
 from mrunner.experiment import Experiment
 import sys, os
-#sys.path.append(os.path.join(os.getcwd(), 'specs'))
-#from spec_utils import get_git_head_info, get_combinations
-from specs.spec_utils import get_git_head_info, get_combinations
+sys.path.append(os.path.join(os.getcwd(), 'specs'))
+from spec_utils import get_git_head_info, get_combinations
 # It might be a good practice to not change specification files if run
 # successfully, to keep convenient history of experiments. When you want to run
 # the same experiment with different hyper-parameters, just copy it.
@@ -28,7 +27,6 @@ def create_experiment_for_spec(parameters):
 params_grid = dict(
     dataset=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
     mode=['o15'],
-    allow_growth=[True],
     eval_interval=[100],
     debug=[True],
 )

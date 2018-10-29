@@ -6,7 +6,7 @@
 # Fetch Mini-ImageNet from https://github.com/openai/supervised-reptile.
 #
 
-imagenet=PATH-TO-IMAGENET-TRAIN-SET
+imagenet=$1
 
 set -e
 

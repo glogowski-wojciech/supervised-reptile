@@ -135,7 +135,7 @@ def create_omniglot_mode(shots, classes, transductive):
     name = 'o' + str(shots) + str(classes) + ('t' if transductive else '')
     cl5 = classes == 5
     return {
-        'mode_name': name,
+        'mode': name,
         'classes': classes,
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
@@ -158,7 +158,7 @@ def create_miniimagenet_mode(shots, transductive):
     name = 'm' + str(shots) + '5' + ('t' if transductive else '')
     sh1 = shots == 1
     return {
-        'mode_name': name,
+        'mode': name,
         'classes': 5,
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
@@ -183,17 +183,18 @@ def update_with_mode(args, neptune_context):
         for classes in [5, 20]:
             for transductive in [False, True]:
                 m = create_omniglot_mode(shots, classes, transductive)
-                modes[m['mode_name']] = m
+                modes[m['mode']] = m
     for shots in [1, 5]:
         for transductive in [False, True]:
             m = create_miniimagenet_mode(shots, transductive)
-            modes[m['mode_name']] = m
+            modes[m['mode']] = m
     if mode in modes.keys():
         args.update(modes[mode])
         neptune_context.tags.append(mode)
     if args['debug']:
         args['meta_iters'] = 100
         args['eval_samples'] = 100
+        args['eval_interval'] = 10
         neptune_context.tags.append('debug')
     return args
 
