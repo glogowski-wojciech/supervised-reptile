@@ -1,0 +1,30 @@
+name: tensorflow_reptile_reproduce
+parameters:
+    allow_growth: True
+project: deepsense-ai-research/meta-learning-reptile
+exclude:
+    - .git
+    - .gitignore
+    - .idea
+    - __pycache__
+    - reptile_sine.ipynb
+    - LICENSE
+    - run_many.py
+    - plots
+    - README.md
+    - original_reproduction
+    - data
+    - metadata
+    - fetch_data.sh
+    - fetch_local.sh
+    - setup.py
+    - web
+    - ckpt_o15
+    - ckpt_o15t
+    - ckpt_o55
+    - ckpt_o55t
+    - ckpt_o120
+    - ckpt_o120t
+    - ckpt_o520
+    - ckpt_o520t
+# tags:

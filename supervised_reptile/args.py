@@ -3,6 +3,7 @@ Command-line argument parsing.
 """
 
 import argparse
+import bunch
 from functools import partial
 
 import tensorflow as tf
@@ -40,7 +41,9 @@ def argument_parser():
     parser.add_argument('--foml-tail', help='number of shots for the final mini-batch in FOML',
                         default=None, type=int)
     parser.add_argument('--sgd', help='use vanilla SGD instead of Adam', action='store_true')
-    parser.add_argument('--allow_growth', help='allow_growth gpu option', action='store_true')
+    parser.add_argument('--allow-growth', help='allow_growth gpu option', action='store_true')
+    parser.add_argument('--mode', help='mode for reproducing results', default='', type=str)
+    parser.add_argument('--debug', help='quick training for debug', action='store_true')
     return parser
 
 def model_kwargs(parsed_args):
@@ -93,6 +96,113 @@ def evaluate_kwargs(parsed_args):
         'transductive': parsed_args.transductive,
         'reptile_fn': _args_reptile(parsed_args)
     }
+
+def default_args():
+    return {
+        'pretrained': False,
+        'seed': 0,
+        'checkpoint': 'model_checkpoint',
+        'classes': 5,
+        'shots': 5,
+        'train_shots': 0,
+        'inner_batch': 5,
+        'inner_iters': 20,
+        'replacement': False,
+        'learning_rate': 1e-3,
+        'meta_step': 0.1,
+        'meta_step_final': 0.1,
+        'meta_batch': 1,
+        'meta_iters': 400000,
+        'eval_batch': 5,
+        'eval_iters': 50,
+        'eval_samples': 10000,
+        'eval_interval': 10,
+        'weight_decay': 1,
+        'transductive': False,
+        'foml': False,
+        'foml_tail': None,
+        'sgd': False,
+        'allow_growth': False,
+        'mode': '',
+        'debug': False,
+    }
+
+def create_omniglot_mode(shots, classes, transductive):
+    assert shots in [1, 5]
+    assert classes in [5, 20]
+    assert transductive in [False, True]
+    name = 'o' + str(shots) + str(classes) + ('t' if transductive else '')
+    cl5 = classes == 5
+    return {
+        'mode_name': name,
+        'classes': classes,
+        'shots': shots,
+        'checkpoint': 'ckpt_' + name,
+        'transductive': transductive,
+        'train_shots': 10,
+        'meta_step': 1.0,
+        'meta_step_final': 0.0,
+        'meta_batch': 5,
+        'eval_iters': 50,
+        'learning_rate': 0.001 if cl5 else 0.0005,
+        'inner_batch': 10 if cl5 else 20,
+        'inner_iters': 5 if cl5 else 10,
+        'meta_iters': 100000 if cl5 else 200000,
+        'eval_batch': 5 if cl5 else 10,
+    }
+
+def create_miniimagenet_mode(shots, transductive):
+    assert shots in [1, 5]
+    assert transductive in [False, True]
+    name = 'm' + str(shots) + '5' + ('t' if transductive else '')
+    sh1 = shots == 1
+    return {
+        'mode_name': name,
+        'classes': 5,
+        'shots': shots,
+        'checkpoint': 'ckpt_' + name,
+        'transductive': transductive,
+        'learning_rate': 0.001,
+        'inner_batch': 10,
+        'inner_iters': 8,
+        'train_shots': 15,
+        'meta_step': 1.0,
+        'meta_step_final': 0.0,
+        'meta_iters': 100000,
+        'meta_batch': 5,
+        'eval_iters': 50,
+        'eval_batch': 5 if sh1 else 15
+    }
+
+
+def update_with_mode(args, neptune_context):
+    mode = args['mode']
+    modes = {}
+    for shots in [1, 5]:
+        for classes in [5, 20]:
+            for transductive in [False, True]:
+                m = create_omniglot_mode(shots, classes, transductive)
+                modes[m['mode_name']] = m
+    for shots in [1, 5]:
+        for transductive in [False, True]:
+            m = create_miniimagenet_mode(shots, transductive)
+            modes[m['mode_name']] = m
+    if mode in modes.keys():
+        args.update(modes[mode])
+        neptune_context.tags.append(mode)
+    if args['debug']:
+        args['meta_iters'] = 100
+        args['eval_samples'] = 100
+        neptune_context.tags.append('debug')
+    return args
+
+def neptune_args(neptune_context):
+    params = neptune_context.params
+    args = default_args()
+    for param in params:
+        args[param] = params[param]
+    args = update_with_mode(args, neptune_context)
+    return bunch.Bunch(args)
 
 def _args_reptile(parsed_args):
     if parsed_args.foml:
