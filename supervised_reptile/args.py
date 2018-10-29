@@ -15,6 +15,7 @@ def argument_parser():
     Get an argument parser for a training script.
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--dataset', help='path to Omniglot dataset', required=True, type=str)
     parser.add_argument('--pretrained', help='evaluate a pre-trained model',
                         action='store_true', default=False)
     parser.add_argument('--seed', help='random seed', default=0, type=int)
@@ -198,6 +199,10 @@ def update_with_mode(args, neptune_context):
 
 def neptune_args(neptune_context):
     params = neptune_context.params
+    try:
+        _ = params.dataset
+    except:
+        raise RuntimeError('No dataset specified')
     args = default_args()
     for param in params:
         args[param] = params[param]
