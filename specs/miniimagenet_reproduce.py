@@ -16,8 +16,9 @@ def create_experiment_for_spec(parameters):
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
     tags = 'mrunner reproduce'.split(' ')
     parameters['git_head'] = get_git_head_info()
-    reproduction_ckpts = ['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t',
-                         'm15', 'm15t', 'm55', 'm55t']
+    modes = ['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t',
+             'm15', 'm15t', 'm55', 'm55t']
+    reproduction_ckpts = ['ckpt_' + mode for mode in modes]
     exclude = ['.idea', 'offline_job.log', 'output', 'neptune.log'] + reproduction_ckpts
     return Experiment(project=project_name, name=name, script=script,
                       parameters=parameters, python_path=python_path,
