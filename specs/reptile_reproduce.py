@@ -10,25 +10,24 @@ from spec_utils import get_git_head_info, get_combinations
 def create_experiment_for_spec(parameters):
     script = 'run_omniglot.py'
     # this will be also displayed in jobs on prometheus
-    name = 'wg_test'
-    project_name = "deepsense-ai-research/meta-learning-reptile-dirty"
+    name = 'tf_reptile_reproduce'
+    project_name = "deepsense-ai-research/meta-learning-reptile"
     python_path = '.:specs'
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
-    tags = 'mrunner debug'.split(' ')
+    tags = 'mrunner reproduce'.split(' ')
     parameters['git_head'] = get_git_head_info()
     return Experiment(project=project_name, name=name, script=script,
                       parameters=parameters, python_path=python_path,
                       paths_to_dump=paths_to_dump, tags=tags,
-                      time='0-0:5'  # days-hours:minutes # TODO
+                      time='2-0:0'  # days-hours:minutes
                       )
 
 # Set params_configurations, eg. as combinations of grid.
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
     dataset=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
-    mode=['o15'],
+    mode=['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t'],
     eval_interval=[100],
-    debug=[True],
 )
 params_configurations = get_combinations(params_grid)
 
