@@ -2,7 +2,7 @@ name: tensorflow_reptile_reproduce
 parameters:
     allow_growth: True
     dataset: '../../data/omniglot'
-project: deepsense-ai-research/meta-learning-reptile-dirty
+project: deepsense-ai-research/meta-learning-reptile
 exclude:
     - .git
     - .gitignore
@@ -13,7 +13,6 @@ exclude:
     - run_many.py
     - plots
     - README.md
-    - original_reproduction
     - data
     - metadata
     - fetch_data.sh
@@ -28,4 +27,8 @@ exclude:
     - ckpt_o120t
     - ckpt_o520
     - ckpt_o520t
+    - ckpt_m15
+    - ckpt_m15t
+    - ckpt_m55
+    - ckpt_m55t
 # tags:
