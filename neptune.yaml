@@ -4,8 +4,6 @@ parameters:
     dataset: '../../data/omniglot'
 project: deepsense-ai-research/meta-learning-reptile
 exclude:
-    - .git
-    - .gitignore
     - .idea
     - __pycache__
     - reptile_sine.ipynb
