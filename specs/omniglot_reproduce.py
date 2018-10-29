@@ -16,10 +16,11 @@ def create_experiment_for_spec(parameters):
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
     tags = 'mrunner reproduce'.split(' ')
     parameters['git_head'] = get_git_head_info()
+    exclude = ['.idea', 'offline_job.log', 'web', 'output', 'neptune.log']
     return Experiment(project=project_name, name=name, script=script,
                       parameters=parameters, python_path=python_path,
                       paths_to_dump=paths_to_dump, tags=tags,
-                      time='2-0:0'  # days-hours:minutes
+                      exclude=exclude, time='2-0:0'  # days-hours:minutes
                       )
 
 # Set params_configurations, eg. as combinations of grid.
