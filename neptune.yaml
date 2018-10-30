@@ -1,10 +1,9 @@
 name: tensorflow_reptile_reproduce
 parameters:
     allow_growth: True
+    dataset: '../../data/miniimagenet'
 project: deepsense-ai-research/meta-learning-reptile
 exclude:
-    - .git
-    - .gitignore
     - .idea
     - __pycache__
     - reptile_sine.ipynb
@@ -12,11 +11,6 @@ exclude:
     - run_many.py
     - plots
     - README.md
-    - original_reproduction
-    - data
-    - metadata
-    - fetch_data.sh
-    - fetch_local.sh
     - setup.py
     - web
     - ckpt_o15
@@ -27,4 +21,9 @@ exclude:
     - ckpt_o120t
     - ckpt_o520
     - ckpt_o520t
+    - ckpt_m15
+    - ckpt_m15t
+    - ckpt_m55
+    - ckpt_m55t
+    - tmp
 # tags:

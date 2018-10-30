@@ -15,6 +15,7 @@ def argument_parser():
     Get an argument parser for a training script.
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--dataset', help='path to Omniglot dataset', required=True, type=str)
     parser.add_argument('--pretrained', help='evaluate a pre-trained model',
                         action='store_true', default=False)
     parser.add_argument('--seed', help='random seed', default=0, type=int)
@@ -134,7 +135,7 @@ def create_omniglot_mode(shots, classes, transductive):
     name = 'o' + str(shots) + str(classes) + ('t' if transductive else '')
     cl5 = classes == 5
     return {
-        'mode_name': name,
+        'mode': name,
         'classes': classes,
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
@@ -157,7 +158,7 @@ def create_miniimagenet_mode(shots, transductive):
     name = 'm' + str(shots) + '5' + ('t' if transductive else '')
     sh1 = shots == 1
     return {
-        'mode_name': name,
+        'mode': name,
         'classes': 5,
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
@@ -182,22 +183,27 @@ def update_with_mode(args, neptune_context):
         for classes in [5, 20]:
             for transductive in [False, True]:
                 m = create_omniglot_mode(shots, classes, transductive)
-                modes[m['mode_name']] = m
+                modes[m['mode']] = m
     for shots in [1, 5]:
         for transductive in [False, True]:
             m = create_miniimagenet_mode(shots, transductive)
-            modes[m['mode_name']] = m
+            modes[m['mode']] = m
     if mode in modes.keys():
         args.update(modes[mode])
         neptune_context.tags.append(mode)
     if args['debug']:
         args['meta_iters'] = 100
         args['eval_samples'] = 100
+        args['eval_interval'] = 10
         neptune_context.tags.append('debug')
     return args
 
 def neptune_args(neptune_context):
     params = neptune_context.params
+    try:
+        _ = params.dataset
+    except:
+        raise RuntimeError('No dataset specified')
     args = default_args()
     for param in params:
         args[param] = params[param]

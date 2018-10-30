@@ -13,8 +13,6 @@ from supervised_reptile.models import OmniglotModel
 from supervised_reptile.omniglot import read_dataset, split_dataset, augment_dataset
 from supervised_reptile.train import train
 
-DATA_DIR = 'data/omniglot'
-
 def main():
     """
     Load data and train a model on it.
@@ -27,7 +25,7 @@ def main():
     print('args:', args)
     random.seed(args.seed)
 
-    train_set, test_set = split_dataset(read_dataset(DATA_DIR))
+    train_set, test_set = split_dataset(read_dataset(args.dataset))
     train_set = list(augment_dataset(train_set))
     test_set = list(test_set)
 
