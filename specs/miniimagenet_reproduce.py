@@ -10,7 +10,7 @@ from spec_utils import get_git_head_info, get_combinations
 def create_experiment_for_spec(parameters):
     script = 'run_miniimagenet.py'
     # this will be also displayed in jobs on prometheus
-    name = 'tf_reptile_reproduce'
+    name = 'one_column_reproduce'
     project_name = "deepsense-ai-research/meta-learning-reptile"
     python_path = '.:specs'
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
@@ -29,7 +29,7 @@ def create_experiment_for_spec(parameters):
 # Set params_configurations, eg. as combinations of grid.
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
-    dataset=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
+    miniimagenet_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
     mode=['m15', 'm15t', 'm55', 'm55t'],
     eval_interval=[100],
 )

@@ -1,7 +1,8 @@
 name: tensorflow_reptile_reproduce
 parameters:
     allow_growth: True
-    dataset: '../../data/miniimagenet'
+    omniglot_src: '../../data/omniglot'
+    miniimagenet_src: '../../data/miniimagenet'
 project: deepsense-ai-research/meta-learning-reptile
 exclude:
     - .idea
