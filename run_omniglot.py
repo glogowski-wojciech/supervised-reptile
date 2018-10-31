@@ -22,7 +22,7 @@ def main():
     final_train_channel = context.create_channel('final_train_accuracy', neptune.ChannelType.NUMERIC)
     final_test_channel = context.create_channel('final_test_accuracy', neptune.ChannelType.NUMERIC)
     args = neptune_args(context)
-    print('args:', args)
+    print('args:\n', args)
     random.seed(args.seed)
 
     train_set, test_set = split_dataset(read_dataset(args.omniglot_src))

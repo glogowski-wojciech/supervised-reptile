@@ -27,7 +27,14 @@ def argument_parser():
     parser.add_argument('--inner-batch', help='inner batch size', default=5, type=int)
     parser.add_argument('--inner-iters', help='inner iterations', default=20, type=int)
     parser.add_argument('--replacement', help='sample with replacement', action='store_true')
-    parser.add_argument('--learning-rate', help='Adam step size', default=1e-3, type=float)
+    parser.add_argument('--learning-rate0', help='Adam column 0 step size', default=1e-3, type=float)
+    parser.add_argument('--learning-rate1', help='Adam column 1 step size', default=1e-3, type=float)
+    parser.add_argument(
+        '--lateral-map', help='Encoded lateral connections. x=connect, o=skip. ' +
+        'First 4 bits are for connections ' +
+        '0 to 1 (0->1), then 4 bits per each of connections (0->2), ..., (0->num_col-1), (1->2), ' +
+        '(1->3), ..., (1->num_col-1), ..., num_col-2->num_col-1.', default='xxxx'
+    )
     parser.add_argument('--meta-step', help='meta-training step size', default=0.1, type=float)
     parser.add_argument('--meta-step-final', help='meta-training step size by the end',
                         default=0.1, type=float)
@@ -53,7 +60,11 @@ def model_kwargs(parsed_args):
     Build the kwargs for model constructors from the
     parsed command-line arguments.
     """
-    res = {'learning_rate': parsed_args.learning_rate}
+    res = {
+        'learning_rate0': parsed_args.learning_rate0,
+        'learning_rate1': parsed_args.learning_rate1,
+        'lateral_map': parsed_args.lateral_map,
+    }
     if parsed_args.sgd:
         res['optimizer'] = tf.train.GradientDescentOptimizer
     return res
@@ -110,7 +121,9 @@ def default_args():
         'inner_batch': 5,
         'inner_iters': 20,
         'replacement': False,
-        'learning_rate': 1e-3,
+        'learning_rate0': 1e-3,
+        'learning_rate1': 1e-3,
+        'lateral_map': 'xxxx',
         'meta_step': 0.1,
         'meta_step_final': 0.1,
         'meta_batch': 1,
@@ -147,7 +160,7 @@ def create_omniglot_mode(shots, classes, transductive):
         'meta_step_final': 0.0,
         'meta_batch': 5,
         'eval_iters': 50,
-        'learning_rate': 0.001 if cl5 else 0.0005,
+        # 'learning_rate': 0.001 if cl5 else 0.0005,
         'inner_batch': 10 if cl5 else 20,
         'inner_iters': 5 if cl5 else 10,
         'meta_iters': 100000 if cl5 else 200000,
@@ -166,7 +179,7 @@ def create_miniimagenet_mode(shots, transductive):
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
         'transductive': transductive,
-        'learning_rate': 0.001,
+        # 'learning_rate': 0.001,
         'inner_batch': 10,
         'inner_iters': 8,
         'train_shots': 15,

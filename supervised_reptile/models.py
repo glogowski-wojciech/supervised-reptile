@@ -9,15 +9,28 @@ import tensorflow as tf
 
 DEFAULT_OPTIMIZER = partial(tf.train.AdamOptimizer, beta1=0)
 
+NUM_LAYERS = 5
+NUM_COLUMNS = 2
+
 
 class ProgressiveOmniglotColumn:
-    def __init__(self, x, num_classes, laterals_in=None):
-        self.NUM_LAYERS = 5
+    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
         if laterals_in is None:
-            laterals_in = {0: [], 1: [], 2: [], 3: []}
+            laterals_in = {}
+            for i in range(NUM_LAYERS - 1):
+                laterals_in[i] = []
+        else:
+            print('laterals_in', laterals_in)
+            laterals_in = dict(laterals_in)
+            print('laterals_in', laterals_in)
+            assert len(lateral_map) == NUM_LAYERS - 1
+            for i in range(NUM_LAYERS - 1):
+                assert lateral_map[i] in ['o', 'x']
+                if lateral_map[i] == 'o':
+                    laterals_in[i] = []
         out0 = self.convModule(x)
         x = self.convToConvAdapter(out0, laterals_in[0])
         out1 = self.convModule(x)
@@ -77,13 +90,21 @@ class ProgressiveOmniglotColumn:
 
 
 class ProgressiveMiniImageNetColumn:
-    def __init__(self, x, num_classes, laterals_in=None):
-        self.NUM_LAYERS = 5
+    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
+        laterals_in = dict(laterals_in)
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
         if laterals_in is None:
-            laterals_in = {0: [], 1: [], 2: [], 3: []}
+            laterals_in = []
+            for i in range(NUM_LAYERS - 1):
+                laterals_in[i] = []
+        else:
+            assert len(lateral_map) == NUM_LAYERS - 1
+            for i in range(NUM_LAYERS - 1):
+                assert lateral_map[i] in ['o', 'x']
+                if lateral_map[i] == 'o':
+                    laterals_in[i] = []
         out0 = self.convModule(x)
         x = self.convToConvAdapter(out0, laterals_in[0])
         out1 = self.convModule(x)
@@ -156,15 +177,13 @@ def merge_laterals(laterals_list):
     return out
 
 
-def minimize_op(loss, optimizer, var_scope0, var_scope1, **optim_kwargs):
+def minimize_op(loss, optimizer, var_scope0, var_scope1, learning_rate0, learning_rate1, **optim_kwargs):
     with tf.name_scope('Opt0'):
         col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=var_scope0)
-        print('col0_vars', col0_vars)
-        minimize_op0 = optimizer(**optim_kwargs).minimize(loss, var_list=col0_vars)
+        minimize_op0 = optimizer(learning_rate0, **optim_kwargs).minimize(loss, var_list=col0_vars)
     with tf.name_scope('Opt1'):
         col1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=var_scope1)
-        print('col1_vars', col1_vars)
-        minimize_op1 = optimizer(**optim_kwargs).minimize(loss, var_list=col1_vars)
+        minimize_op1 = optimizer(learning_rate1, **optim_kwargs).minimize(loss, var_list=col1_vars)
     with tf.control_dependencies([minimize_op0, minimize_op1]):
         return tf.no_op()
 
@@ -174,7 +193,9 @@ class ProgressiveOmniglotModel:
     """
     Progressive n-column model for Omniglot. Check https://arxiv.org/abs/1606.04671 for more details.
     """
-    def __init__(self, num_classes, optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
+    def __init__(self, num_classes, lateral_map, optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
+        print(type(lateral_map), lateral_map)
+        assert len(lateral_map) == (NUM_LAYERS - 1) * NUM_COLUMNS * (NUM_COLUMNS - 1) / 2
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 28, 28))
         self.input = tf.reshape(self.input_ph, (-1, 28, 28, 1))
         with tf.name_scope('Net'):
@@ -182,13 +203,14 @@ class ProgressiveOmniglotModel:
                 self.column0 = ProgressiveOmniglotColumn(self.input, num_classes)
             laterals1 = merge_laterals([self.column0.laterals])
             with tf.variable_scope('Col1Vars'):
-                self.column1 = ProgressiveOmniglotColumn(self.input, num_classes, laterals1)
+                self.column1 = ProgressiveOmniglotColumn(
+                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
+                )
         self.logits = self.column1.logits
         self.label_ph = self.column1.label_ph
         self.loss = self.column1.loss
         self.predictions = self.column1.predictions
-        # self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
-        self.minimize_op = optimizer(**optim_kwargs).minimize(self.loss)
+        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
 
 
 # pylint: disable=R0903
@@ -196,7 +218,8 @@ class ProgressiveMiniImageNetModel:
     """
     Progressive n-column model for Mini-ImageNet. Check https://arxiv.org/abs/1606.04671 for more details.
     """
-    def __init__(self, num_classes, optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
+    def __init__(self, num_classes, lateral_map, optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
+        assert len(lateral_map) == (NUM_LAYERS - 1) * NUM_COLUMNS * (NUM_COLUMNS - 1) / 2
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 84, 84, 3)) 
         self.input = self.input_ph
         with tf.name_scope('Net'):
@@ -204,11 +227,12 @@ class ProgressiveMiniImageNetModel:
                 self.column0 = ProgressiveMiniImageNetColumn(self.input, num_classes)
             laterals1 = merge_laterals([self.column0.laterals])
             with tf.variable_scope('Col1Vars'):
-                self.column1 = ProgressiveMiniImageNetColumn(self.input, num_classes, laterals1)
+                self.column1 = ProgressiveMiniImageNetColumn(
+                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
+                )
         self.logits = self.column1.logits
         self.label_ph = self.column1.label_ph
         self.loss = self.column1.loss
         self.predictions = self.column1.predictions
-        # self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
-        self.minimize_op = optimizer(**optim_kwargs).minimize(self.loss)
+        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
 
