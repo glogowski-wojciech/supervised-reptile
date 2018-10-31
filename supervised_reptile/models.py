@@ -187,7 +187,8 @@ class ProgressiveOmniglotModel:
         self.label_ph = self.column1.label_ph
         self.loss = self.column1.loss
         self.predictions = self.column1.predictions
-        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        # self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        self.minimize_op = optimizer(**optim_kwargs).minimize(self.loss)
 
 
 # pylint: disable=R0903
@@ -208,5 +209,6 @@ class ProgressiveMiniImageNetModel:
         self.label_ph = self.column1.label_ph
         self.loss = self.column1.loss
         self.predictions = self.column1.predictions
-        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        # self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        self.minimize_op = optimizer(**optim_kwargs).minimize(self.loss)
 
