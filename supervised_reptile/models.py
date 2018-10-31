@@ -23,9 +23,7 @@ class ProgressiveOmniglotColumn:
             for i in range(NUM_LAYERS - 1):
                 laterals_in[i] = []
         else:
-            print('laterals_in', laterals_in)
             laterals_in = dict(laterals_in)
-            print('laterals_in', laterals_in)
             assert len(lateral_map) == NUM_LAYERS - 1
             for i in range(NUM_LAYERS - 1):
                 assert lateral_map[i] in ['o', 'x']
@@ -91,15 +89,15 @@ class ProgressiveOmniglotColumn:
 
 class ProgressiveMiniImageNetColumn:
     def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
-        laterals_in = dict(laterals_in)
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
         if laterals_in is None:
-            laterals_in = []
+            laterals_in = {}
             for i in range(NUM_LAYERS - 1):
                 laterals_in[i] = []
         else:
+            laterals_in = dict(laterals_in)
             assert len(lateral_map) == NUM_LAYERS - 1
             for i in range(NUM_LAYERS - 1):
                 assert lateral_map[i] in ['o', 'x']
