@@ -195,9 +195,9 @@ def update_with_mode(args, neptune_context):
         args.update(modes[mode])
         neptune_context.tags.append(mode)
     if args['debug']:
-        args['meta_iters'] = 100
-        args['eval_samples'] = 100
-        args['eval_interval'] = 10
+        args['meta_iters'] = 8
+        args['eval_samples'] = 20
+        args['eval_interval'] = 4
         neptune_context.tags.append('debug')
     return args
 
