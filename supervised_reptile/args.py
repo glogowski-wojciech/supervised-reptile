@@ -214,6 +214,7 @@ def update_with_mode(args, neptune_context):
         neptune_context.tags.append('debug')
     return args
 
+
 def neptune_args(neptune_context):
     params = neptune_context.params
     args = default_args()
@@ -221,6 +222,7 @@ def neptune_args(neptune_context):
         args[param] = params[param]
     args = update_with_mode(args, neptune_context)
     return bunch.Bunch(args)
+
 
 def _args_reptile(parsed_args):
     if parsed_args.foml:
