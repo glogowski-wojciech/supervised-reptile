@@ -34,7 +34,7 @@ params_grid = dict(
     learning_rate0=[0.0002, 0.001, 0.005],
     learning_rate1=[0.0002, 0.001, 0.005],
     lateral_map=['xxxx'],
-    mode=['m120'],
+    mode=['m55'],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)
