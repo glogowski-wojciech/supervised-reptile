@@ -14,7 +14,7 @@ def create_experiment_for_spec(parameters):
     project_name = "deepsense-ai-research/meta-learning-reptile"
     python_path = '.:specs'
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
-    tags = 'mrunner reproduce'.split(' ')
+    tags = 'mrunner_cpu reproduce'.split(' ')
     parameters['git_head'] = get_git_head_info()
     modes = ['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t',
              'm15', 'm15t', 'm55', 'm55t']
@@ -23,7 +23,7 @@ def create_experiment_for_spec(parameters):
     return Experiment(project=project_name, name=name, script=script,
                       parameters=parameters, python_path=python_path,
                       paths_to_dump=paths_to_dump, tags=tags,
-                      exclude=exclude, time='2-0:0'  # days-hours:minutes
+                      exclude=exclude, time='3-0:0'  # days-hours:minutes
                       )
 
 # Set params_configurations, eg. as combinations of grid.
