@@ -29,7 +29,7 @@ def create_experiment_for_spec(parameters):
 # Set params_configurations, eg. as combinations of grid.
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
-    dataset=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
+    dataset=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
     mode=['m15', 'm15t', 'm55', 'm55t'],
     eval_interval=[100],
 )
