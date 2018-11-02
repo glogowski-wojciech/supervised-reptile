@@ -191,7 +191,8 @@ class ProgressiveOmniglotModel:
     """
     Progressive n-column model for Omniglot. Check https://arxiv.org/abs/1606.04671 for more details.
     """
-    def __init__(self, num_classes, lateral_map, optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
+    def __init__(self, num_classes, lateral_map, learning_rate0, learning_rate1,
+                 optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
         print(type(lateral_map), lateral_map)
         assert len(lateral_map) == (NUM_LAYERS - 1) * NUM_COLUMNS * (NUM_COLUMNS - 1) / 2
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 28, 28))
@@ -199,16 +200,15 @@ class ProgressiveOmniglotModel:
         with tf.name_scope('Net'):
             with tf.variable_scope('Col0Vars'):
                 self.column0 = ProgressiveOmniglotColumn(self.input, num_classes)
-            laterals1 = merge_laterals([self.column0.laterals])
-            with tf.variable_scope('Col1Vars'):
-                self.column1 = ProgressiveOmniglotColumn(
-                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
-                )
-        self.logits = self.column1.logits
-        self.label_ph = self.column1.label_ph
-        self.loss = self.column1.loss
-        self.predictions = self.column1.predictions
-        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        self.logits = self.column0.logits
+        self.label_ph = self.column0.label_ph
+        self.loss = self.column0.loss
+        self.predictions = self.column0.predictions
+        with tf.name_scope('Opt0'):
+            self.col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                               scope='Col0Vars')
+            self.minimize_op = optimizer(learning_rate0, **optim_kwargs).minimize(
+                self.loss, var_list=self.col0_vars)
 
 
 # pylint: disable=R0903
@@ -216,21 +216,21 @@ class ProgressiveMiniImageNetModel:
     """
     Progressive n-column model for Mini-ImageNet. Check https://arxiv.org/abs/1606.04671 for more details.
     """
-    def __init__(self, num_classes, lateral_map, optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
+    def __init__(self, num_classes, lateral_map, learning_rate0, learning_rate1,
+                 optimizer=DEFAULT_OPTIMIZER, **optim_kwargs):
         assert len(lateral_map) == (NUM_LAYERS - 1) * NUM_COLUMNS * (NUM_COLUMNS - 1) / 2
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 84, 84, 3)) 
         self.input = self.input_ph
         with tf.name_scope('Net'):
             with tf.variable_scope('Col0Vars'):
                 self.column0 = ProgressiveMiniImageNetColumn(self.input, num_classes)
-            laterals1 = merge_laterals([self.column0.laterals])
-            with tf.variable_scope('Col1Vars'):
-                self.column1 = ProgressiveMiniImageNetColumn(
-                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
-                )
-        self.logits = self.column1.logits
-        self.label_ph = self.column1.label_ph
-        self.loss = self.column1.loss
-        self.predictions = self.column1.predictions
-        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        self.logits = self.column0.logits
+        self.label_ph = self.column0.label_ph
+        self.loss = self.column0.loss
+        self.predictions = self.column0.predictions
+        with tf.name_scope('Opt0'):
+            self.col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                               scope='Col0Vars')
+            self.minimize_op = optimizer(learning_rate0, **optim_kwargs).minimize(
+                self.loss, var_list=self.col0_vars)
 

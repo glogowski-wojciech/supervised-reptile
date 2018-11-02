@@ -30,7 +30,7 @@ def create_experiment_for_spec(parameters):
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
     omniglot_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
-    pretrained_column_src =['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained'],
+    pretrained_column_src =['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained/col0'],
     mode=['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t'],
     learning_rate0=[0.001],
     learning_rate1=[0.001],

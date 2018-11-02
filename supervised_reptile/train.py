@@ -10,12 +10,14 @@ import tensorflow as tf
 from .reptile import Reptile
 from .variables import weight_decay
 
+
 # pylint: disable=R0913,R0914
 def train(sess,
           model,
           train_set,
           test_set,
           save_dir,
+          pretrained_column_dir,
           num_classes=5,
           num_shots=5,
           inner_batch_size=5,
@@ -39,7 +41,8 @@ def train(sess,
     """
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
-    saver = tf.train.Saver()
+    if not os.path.exists(pretrained_column_dir):
+        os.mkdir(pretrained_column_dir)
     reptile = reptile_fn(sess,
                          transductive=transductive,
                          pre_step_op=weight_decay(weight_decay_rate))
@@ -72,6 +75,8 @@ def train(sess,
                 accuracies.append(correct / num_classes)
             # log_fn('batch %d: train=%f test=%f' % (i, accuracies[0], accuracies[1]))
         if i == meta_iters-1:
-            saver.save(sess, os.path.join(save_dir, 'model.ckpt'), global_step=i)
+            tf.train.Saver().save(sess, os.path.join(save_dir, 'model.ckpt'), global_step=i)
+            tf.train.Saver(model.col0_vars).save(
+                sess, os.path.join(pretrained_column_dir, 'pretrained.ckpt'), global_step=i)
         if time_deadline is not None and time.time() > time_deadline:
             break

@@ -2,6 +2,7 @@
 Train a model on Omniglot.
 """
 
+import os
 import random
 
 import neptune
@@ -12,6 +13,7 @@ from supervised_reptile.eval import evaluate
 from supervised_reptile.models import ProgressiveOmniglotModel
 from supervised_reptile.omniglot import read_dataset, split_dataset, augment_dataset
 from supervised_reptile.train import train
+
 
 def main():
     """
@@ -24,6 +26,7 @@ def main():
     args = neptune_args(context)
     print('args:\n', args)
     random.seed(args.seed)
+    pretrained_column_dir = os.path.join(args.pretrained_column_src, args.checkpoint)
 
     train_set, test_set = split_dataset(read_dataset(args.omniglot_src))
     train_set = list(augment_dataset(train_set))
@@ -36,10 +39,12 @@ def main():
     with tf.Session(config=config) as sess:
         if not args.pretrained:
             print('Training...')
-            train(sess, model, train_set, test_set, args.checkpoint, **train_kwargs(args))
+            train(sess, model, train_set, test_set, args.checkpoint,
+                  pretrained_column_dir, **train_kwargs(args))
         else:
             print('Restoring from checkpoint...')
             tf.train.Saver().restore(sess, tf.train.latest_checkpoint(args.checkpoint))
+            tf.train.Saver(model.col0_vars).restore(sess, tf.train.latest_checkpoint(pretrained_column_dir))
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)
@@ -49,6 +54,7 @@ def main():
         print('final_test_accuracy:', final_test_accuracy)
         final_train_channel.send(final_train_accuracy)
         final_test_channel.send(final_test_accuracy)
+
 
 if __name__ == '__main__':
     main()

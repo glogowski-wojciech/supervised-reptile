@@ -25,6 +25,7 @@ def main():
     args = neptune_args(context)
     print('args:', args)
     random.seed(args.seed)
+    pretrained_column_dir = os.path.join(args.pretrained_column_src, args.checkpoint)
 
     train_set, val_set, test_set = read_dataset(args.miniimagenet_src)
     model = ProgressiveMiniImageNetModel(args.classes, **model_kwargs(args))
@@ -34,10 +35,12 @@ def main():
     with tf.Session(config=config) as sess:
         if not args.pretrained:
             print('Training...')
-            train(sess, model, train_set, test_set, args.checkpoint, **train_kwargs(args))
+            train(sess, model, train_set, test_set, args.checkpoint,
+                  pretrained_column_dir, **train_kwargs(args))
         else:
             print('Restoring from checkpoint...')
             tf.train.Saver().restore(sess, tf.train.latest_checkpoint(args.checkpoint))
+            tf.train.Saver(model.col0_vars).restore(sess, tf.train.latest_checkpoint(pretrained_column_dir))
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)
