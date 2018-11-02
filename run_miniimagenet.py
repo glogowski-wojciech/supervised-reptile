@@ -41,7 +41,7 @@ def main():
         else:
             print('Restoring from checkpoint...')
             tf.train.Saver().restore(sess, tf.train.latest_checkpoint(args.checkpoint))
-            tf.train.Saver(model.col1_vars).restore(sess, tf.train.latest_checkpoint(pretrained_column_dir))
+            tf.train.Saver(model.col0_vars).restore(sess, tf.train.latest_checkpoint(pretrained_column_dir))
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)

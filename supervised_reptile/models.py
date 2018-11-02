@@ -198,17 +198,17 @@ class ProgressiveOmniglotModel:
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 28, 28))
         self.input = tf.reshape(self.input_ph, (-1, 28, 28, 1))
         with tf.name_scope('Net'):
-            with tf.variable_scope('Col1Vars'):
-                self.column1 = ProgressiveOmniglotColumn(self.input, num_classes)
-        self.logits = self.column1.logits
-        self.label_ph = self.column1.label_ph
-        self.loss = self.column1.loss
-        self.predictions = self.column1.predictions
-        with tf.name_scope('Opt1'):
-            self.col1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
-                                               scope='Col1Vars')
+            with tf.variable_scope('Col0Vars'):
+                self.column0 = ProgressiveOmniglotColumn(self.input, num_classes)
+        self.logits = self.column0.logits
+        self.label_ph = self.column0.label_ph
+        self.loss = self.column0.loss
+        self.predictions = self.column0.predictions
+        with tf.name_scope('Opt0'):
+            self.col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                               scope='Col0Vars')
             self.minimize_op = optimizer(learning_rate0, **optim_kwargs).minimize(
-                self.loss, var_list=self.col1_vars)
+                self.loss, var_list=self.col0_vars)
 
 
 # pylint: disable=R0903
@@ -222,15 +222,15 @@ class ProgressiveMiniImageNetModel:
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 84, 84, 3)) 
         self.input = self.input_ph
         with tf.name_scope('Net'):
-            with tf.variable_scope('Col1Vars'):
-                self.column1 = ProgressiveMiniImageNetColumn(self.input, num_classes)
-        self.logits = self.column1.logits
-        self.label_ph = self.column1.label_ph
-        self.loss = self.column1.loss
-        self.predictions = self.column1.predictions
-        with tf.name_scope('Opt1'):
-            self.col1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
-                                               scope='Col1Vars')
+            with tf.variable_scope('Col0Vars'):
+                self.column0 = ProgressiveMiniImageNetColumn(self.input, num_classes)
+        self.logits = self.column0.logits
+        self.label_ph = self.column0.label_ph
+        self.loss = self.column0.loss
+        self.predictions = self.column0.predictions
+        with tf.name_scope('Opt0'):
+            self.col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,
+                                               scope='Col0Vars')
             self.minimize_op = optimizer(learning_rate0, **optim_kwargs).minimize(
-                self.loss, var_list=self.col1_vars)
+                self.loss, var_list=self.col0_vars)
 
