@@ -2,6 +2,7 @@
 Train a model on miniImageNet.
 """
 
+import os
 import random
 
 import neptune
