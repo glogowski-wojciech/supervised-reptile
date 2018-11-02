@@ -7,7 +7,7 @@ import random
 import neptune
 import tensorflow as tf
 
-from supervised_reptile.args import argument_parser, model_kwargs, train_kwargs, evaluate_kwargs, neptune_args
+from supervised_reptile.args import model_kwargs, train_kwargs, evaluate_kwargs, neptune_args
 from supervised_reptile.eval import evaluate
 from supervised_reptile.models import OmniglotModel
 from supervised_reptile.omniglot import read_dataset, split_dataset, augment_dataset
@@ -22,10 +22,10 @@ def main():
     final_train_channel = context.create_channel('final_train_accuracy', neptune.ChannelType.NUMERIC)
     final_test_channel = context.create_channel('final_test_accuracy', neptune.ChannelType.NUMERIC)
     args = neptune_args(context)
-    print('args:', args)
+    print('args:\n', args)
     random.seed(args.seed)
 
-    train_set, test_set = split_dataset(read_dataset(args.dataset))
+    train_set, test_set = split_dataset(read_dataset(args.omniglot_src))
     train_set = list(augment_dataset(train_set))
     test_set = list(test_set)
 

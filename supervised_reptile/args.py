@@ -15,7 +15,8 @@ def argument_parser():
     Get an argument parser for a training script.
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--dataset', help='path to Omniglot dataset', required=True, type=str)
+    parser.add_argument('--omniglot-src', help='path to Omniglot dataset', default='', type=str)
+    parser.add_argument('--miniimagenet-src', help='path to Omniglot dataset', default='', type=str)
     parser.add_argument('--pretrained', help='evaluate a pre-trained model',
                         action='store_true', default=False)
     parser.add_argument('--seed', help='random seed', default=0, type=int)
@@ -135,6 +136,7 @@ def create_omniglot_mode(shots, classes, transductive):
     name = 'o' + str(shots) + str(classes) + ('t' if transductive else '')
     cl5 = classes == 5
     return {
+        'dataset': 'omniglot',
         'mode': name,
         'classes': classes,
         'shots': shots,
@@ -158,6 +160,7 @@ def create_miniimagenet_mode(shots, transductive):
     name = 'm' + str(shots) + '5' + ('t' if transductive else '')
     sh1 = shots == 1
     return {
+        'dataset': 'miniimagenet',
         'mode': name,
         'classes': 5,
         'shots': shots,
@@ -192,23 +195,21 @@ def update_with_mode(args, neptune_context):
         args.update(modes[mode])
         neptune_context.tags.append(mode)
     if args['debug']:
-        args['meta_iters'] = 100
-        args['eval_samples'] = 100
-        args['eval_interval'] = 10
+        args['meta_iters'] = 8
+        args['eval_samples'] = 20
+        args['eval_interval'] = 4
         neptune_context.tags.append('debug')
     return args
 
+
 def neptune_args(neptune_context):
     params = neptune_context.params
-    try:
-        _ = params.dataset
-    except:
-        raise RuntimeError('No dataset specified')
     args = default_args()
     for param in params:
         args[param] = params[param]
     args = update_with_mode(args, neptune_context)
     return bunch.Bunch(args)
+
 
 def _args_reptile(parsed_args):
     if parsed_args.foml:

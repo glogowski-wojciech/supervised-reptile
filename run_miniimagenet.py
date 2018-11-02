@@ -7,7 +7,7 @@ import random
 import neptune
 import tensorflow as tf
 
-from supervised_reptile.args import argument_parser, model_kwargs, train_kwargs, evaluate_kwargs, neptune_args
+from supervised_reptile.args import model_kwargs, train_kwargs, evaluate_kwargs, neptune_args
 from supervised_reptile.eval import evaluate
 from supervised_reptile.models import MiniImageNetModel
 from supervised_reptile.miniimagenet import read_dataset
@@ -26,7 +26,7 @@ def main():
     print('args:', args)
     random.seed(args.seed)
 
-    train_set, val_set, test_set = read_dataset(args.dataset)
+    train_set, val_set, test_set = read_dataset(args.miniimagenet_src)
     model = MiniImageNetModel(args.classes, **model_kwargs(args))
 
     config = tf.ConfigProto()
