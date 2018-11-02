@@ -30,6 +30,7 @@ def create_experiment_for_spec(parameters):
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
     miniimagenet_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
+    pretrained_column_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained'],
     mode=['m15', 'm15t', 'm55', 'm55t'],
     learning_rate0=[0.001],
     learning_rate1=[0.001],

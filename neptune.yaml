@@ -3,6 +3,7 @@ parameters:
     allow_growth: True
     omniglot_src: '../../data/omniglot'
     miniimagenet_src: '../../data/miniimagenet'
+    pretrained_column_src: '../../pretrained'
 project: deepsense-ai-research/meta-learning-reptile
 exclude:
     - .idea

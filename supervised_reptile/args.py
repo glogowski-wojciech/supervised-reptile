@@ -17,6 +17,7 @@ def argument_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--omniglot-src', help='path to Omniglot dataset', default='', type=str)
     parser.add_argument('--miniimagenet-src', help='path to Omniglot dataset', default='', type=str)
+    parser.add_argument('--pretrained-column-src', help='path to 2-column pretrained columns', default='', type=str)
     parser.add_argument('--pretrained', help='evaluate a pre-trained model',
                         action='store_true', default=False)
     parser.add_argument('--seed', help='random seed', default=0, type=int)
