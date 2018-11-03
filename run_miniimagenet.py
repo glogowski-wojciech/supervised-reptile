@@ -42,7 +42,9 @@ def main():
         else:
             print('Restoring from checkpoint...')
             tf.train.Saver().restore(sess, tf.train.latest_checkpoint(args.checkpoint))
-            tf.train.Saver(model.col0_vars).restore(sess, tf.train.latest_checkpoint(pretrained_column_dir))
+            col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='Col0Vars')
+            tf.train.Saver(col0_vars).restore(
+                sess, tf.train.latest_checkpoint(pretrained_column_dir))
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)

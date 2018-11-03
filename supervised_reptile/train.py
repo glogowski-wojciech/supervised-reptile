@@ -53,6 +53,8 @@ def train(sess,
     test_writer = tf.summary.FileWriter(os.path.join(save_dir, 'test'), sess.graph)
     tf.global_variables_initializer().run()
     sess.run(tf.global_variables_initializer())
+    col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='Col0Vars')
+    tf.train.Saver(col0_vars).restore(sess, tf.train.latest_checkpoint(pretrained_column_dir))
     for i in range(meta_iters):
         frac_done = i / meta_iters
         cur_meta_step_size = frac_done * meta_step_size_final + (1 - frac_done) * meta_step_size
@@ -76,7 +78,5 @@ def train(sess,
             # log_fn('batch %d: train=%f test=%f' % (i, accuracies[0], accuracies[1]))
         if i == meta_iters-1:
             tf.train.Saver().save(sess, os.path.join(save_dir, 'model.ckpt'), global_step=i)
-            tf.train.Saver(model.col0_vars).save(
-                sess, os.path.join(pretrained_column_dir, 'pretrained.ckpt'), global_step=i)
         if time_deadline is not None and time.time() > time_deadline:
             break

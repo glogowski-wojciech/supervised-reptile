@@ -14,7 +14,7 @@ def create_experiment_for_spec(parameters):
     project_name = "deepsense-ai-research/meta-learning-reptile"
     python_path = '.:specs'
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
-    tags = 'pretrained_column pretraining_col1'.split(' ')
+    tags = 'pretrained_column pretrained_col0'.split(' ')
     parameters['git_head'] = get_git_head_info()
     modes = ['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t',
              'm15', 'm15t', 'm55', 'm55t']
@@ -30,8 +30,10 @@ def create_experiment_for_spec(parameters):
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
     miniimagenet_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
-    pretrained_column_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained/col1'],
-    mode=['m15', 'm15t', 'm55', 'm55t'],
+    pretrained_column_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained/col0'],
+    mode=['m15', 'm55'],
+    learning_rate0=[0.0002, 0.001, 0.005],
+    learning_rate1=[0.0002, 0.001, 0.005],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)
