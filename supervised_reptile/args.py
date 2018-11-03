@@ -10,6 +10,7 @@ import tensorflow as tf
 
 from .reptile import Reptile, FOML
 
+
 def argument_parser():
     """
     Get an argument parser for a training script.
@@ -55,6 +56,7 @@ def argument_parser():
     parser.add_argument('--debug', help='quick training for debug', action='store_true')
     return parser
 
+
 def model_kwargs(parsed_args):
     """
     Build the kwargs for model constructors from the
@@ -68,6 +70,7 @@ def model_kwargs(parsed_args):
     if parsed_args.sgd:
         res['optimizer'] = tf.train.GradientDescentOptimizer
     return res
+
 
 def train_kwargs(parsed_args):
     """
@@ -93,6 +96,7 @@ def train_kwargs(parsed_args):
         'reptile_fn': _args_reptile(parsed_args)
     }
 
+
 def evaluate_kwargs(parsed_args):
     """
     Build kwargs for the evaluate() function from the
@@ -109,6 +113,7 @@ def evaluate_kwargs(parsed_args):
         'transductive': parsed_args.transductive,
         'reptile_fn': _args_reptile(parsed_args)
     }
+
 
 def default_args():
     return {
@@ -160,12 +165,14 @@ def create_omniglot_mode(shots, classes, transductive):
         'meta_step_final': 0.0,
         'meta_batch': 5,
         'eval_iters': 50,
-        # 'learning_rate': 0.001 if cl5 else 0.0005,
+        'learning_rate0': 0.001 if cl5 else 0.0005,
+        'learning_rate1': 0.001 if cl5 else 0.0005,
         'inner_batch': 10 if cl5 else 20,
         'inner_iters': 5 if cl5 else 10,
         'meta_iters': 100000 if cl5 else 200000,
         'eval_batch': 5 if cl5 else 10,
     }
+
 
 def create_miniimagenet_mode(shots, transductive):
     assert shots in [1, 5]
@@ -179,7 +186,8 @@ def create_miniimagenet_mode(shots, transductive):
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
         'transductive': transductive,
-        # 'learning_rate': 0.001,
+        'learning_rate0': 0.001,
+        'learning_rate1': 0.001,
         'inner_batch': 10,
         'inner_iters': 8,
         'train_shots': 15,
@@ -192,8 +200,8 @@ def create_miniimagenet_mode(shots, transductive):
     }
 
 
-def update_with_mode(args, neptune_context):
-    mode = args['mode']
+def update_with_mode(params, args, neptune_context):
+    mode = params['mode']
     modes = {}
     for shots in [1, 5]:
         for classes in [5, 20]:
@@ -207,7 +215,11 @@ def update_with_mode(args, neptune_context):
     if mode in modes.keys():
         args.update(modes[mode])
         neptune_context.tags.append(mode)
-    if args['debug']:
+    return args
+
+
+def update_with_debug(params, args, neptune_context):
+    if 'debug' in params and params['debug']:
         args['meta_iters'] = 8
         args['eval_samples'] = 20
         args['eval_interval'] = 4
@@ -216,11 +228,16 @@ def update_with_mode(args, neptune_context):
 
 
 def neptune_args(neptune_context):
-    params = neptune_context.params
+    npt_params = neptune_context.params
+    params = {}
+    for param in npt_params:
+        params[param] = npt_params[param]
     args = default_args()
+    args = update_with_mode(params, args, neptune_context)
     for param in params:
         args[param] = params[param]
-    args = update_with_mode(args, neptune_context)
+    args = update_with_debug(params, args, neptune_context)
+
     return bunch.Bunch(args)
 
 
@@ -228,3 +245,5 @@ def _args_reptile(parsed_args):
     if parsed_args.foml:
         return partial(FOML, tail_shots=parsed_args.foml_tail)
     return Reptile
+
+
