@@ -8,7 +8,7 @@ from spec_utils import get_git_head_info, get_combinations
 # Starting name with (approximate) date of run is also helpful.
 
 def create_experiment_for_spec(parameters):
-    script = 'run_miniimagenet.py'
+    script = 'run_omniglot.py'
     # this will be also displayed in jobs on prometheus
     name = 'two_columns'
     project_name = "deepsense-ai-research/meta-learning-reptile"
@@ -29,12 +29,12 @@ def create_experiment_for_spec(parameters):
 # Set params_configurations, eg. as combinations of grid.
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
-    miniimagenet_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
-    # mode=['m15', 'm15t', 'm55', 'm55t'],
-    learning_rate0=[0.0002, 0.001, 0.005],
-    learning_rate1=[0.0002, 0.001, 0.005],
+    omniglot_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
+    # mode=['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t'],
+    learning_rate0=[0.0001, 0.0005, 0.0025],
+    learning_rate1=[0.0001, 0.0005, 0.0025],
     lateral_map=['xxxx'],
-    mode=['m15', 'm55'],
+    mode=['o120'],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)

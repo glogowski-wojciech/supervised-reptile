@@ -43,8 +43,10 @@ def train(sess,
     reptile = reptile_fn(sess,
                          transductive=transductive,
                          pre_step_op=weight_decay(weight_decay_rate))
-    accuracy_ph = tf.placeholder(tf.float32, shape=())
-    tf.summary.scalar('accuracy', accuracy_ph)
+    accuracy_ph0 = tf.placeholder(tf.float32, shape=())
+    accuracy_ph1 = tf.placeholder(tf.float32, shape=())
+    tf.summary.scalar('accuracy0', accuracy_ph0)
+    tf.summary.scalar('accuracy1', accuracy_ph1)
     merged = tf.summary.merge_all()
     train_writer = tf.summary.FileWriter(os.path.join(save_dir, 'train'), sess.graph)
     test_writer = tf.summary.FileWriter(os.path.join(save_dir, 'test'), sess.graph)
@@ -59,17 +61,22 @@ def train(sess,
                            replacement=replacement,
                            meta_step_size=cur_meta_step_size, meta_batch_size=meta_batch_size)
         if i % eval_interval == 0:
-            accuracies = []
+            accuracies0 = []
+            accuracies1 = []
             for dataset, writer in [(train_set, train_writer), (test_set, test_writer)]:
-                correct = reptile.evaluate(dataset, model.input_ph, model.label_ph,
-                                           model.minimize_op, model.predictions,
-                                           num_classes=num_classes, num_shots=num_shots,
-                                           inner_batch_size=eval_inner_batch_size,
-                                           inner_iters=eval_inner_iters, replacement=replacement)
-                summary = sess.run(merged, feed_dict={accuracy_ph: correct/num_classes})
+                corrects = reptile.evaluate(dataset, model.input_ph, model.label_ph,
+                                            model.minimize_op, model,
+                                            num_classes=num_classes, num_shots=num_shots,
+                                            inner_batch_size=eval_inner_batch_size,
+                                            inner_iters=eval_inner_iters, replacement=replacement)
+                summary = sess.run(merged, feed_dict={
+                    accuracy_ph0: corrects[0]/num_classes,
+                    accuracy_ph1: corrects[1]/num_classes,
+                })
                 writer.add_summary(summary, i)
                 writer.flush()
-                accuracies.append(correct / num_classes)
+                accuracies0.append(corrects[0] / num_classes)
+                accuracies1.append(corrects[1] / num_classes)
             # log_fn('batch %d: train=%f test=%f' % (i, accuracies[0], accuracies[1]))
         if i % 100 == 0 or i == meta_iters-1:
             saver.save(sess, os.path.join(save_dir, 'model.ckpt'), global_step=i)

@@ -24,11 +24,16 @@ def evaluate(sess,
     reptile = reptile_fn(sess,
                          transductive=transductive,
                          pre_step_op=weight_decay(weight_decay_rate))
-    total_correct = 0
+    total_correct0 = 0
+    total_correct1 = 0
     for _ in range(num_samples):
-        total_correct += reptile.evaluate(dataset, model.input_ph, model.label_ph,
-                                          model.minimize_op, model.predictions,
+        correct0, correct1 = reptile.evaluate(dataset, model.input_ph, model.label_ph,
+                                          model.minimize_op, model,
                                           num_classes=num_classes, num_shots=num_shots,
                                           inner_batch_size=eval_inner_batch_size,
                                           inner_iters=eval_inner_iters, replacement=replacement)
-    return total_correct / (num_samples * num_classes)
+        total_correct0 += correct0
+        total_correct1 += correct1
+    accuracy0 = total_correct0 / (num_samples * num_classes)
+    accuracy1 = total_correct1 / (num_samples * num_classes)
+    return accuracy0, accuracy1

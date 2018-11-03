@@ -14,7 +14,7 @@ def create_experiment_for_spec(parameters):
     project_name = "deepsense-ai-research/meta-learning-reptile"
     python_path = '.:specs'
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
-    tags = 'two_columns two_columns_learning_rate'.split(' ')
+    tags = 'two_columns two_columns_two_losses'.split(' ')
     parameters['git_head'] = get_git_head_info()
     modes = ['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t',
              'm15', 'm15t', 'm55', 'm55t']
@@ -34,7 +34,7 @@ params_grid = dict(
     learning_rate0=[0.0002, 0.001, 0.005],
     learning_rate1=[0.0002, 0.001, 0.005],
     lateral_map=['xxxx'],
-    mode=['o120'],
+    mode=['o15'],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)

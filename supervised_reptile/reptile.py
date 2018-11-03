@@ -10,6 +10,7 @@ import tensorflow as tf
 from .variables import (interpolate_vars, average_vars, subtract_vars, add_vars, scale_vars,
                         VariableState)
 
+
 class Reptile:
     """
     A meta-learning session.
@@ -78,7 +79,7 @@ class Reptile:
                  input_ph,
                  label_ph,
                  minimize_op,
-                 predictions,
+                 model,
                  num_classes,
                  num_shots,
                  inner_batch_size,
@@ -117,21 +118,28 @@ class Reptile:
             if self._pre_step_op:
                 self.session.run(self._pre_step_op)
             self.session.run(minimize_op, feed_dict={input_ph: inputs, label_ph: labels})
-        test_preds = self._test_predictions(train_set, test_set, input_ph, predictions)
-        num_correct = sum([pred == sample[1] for pred, sample in zip(test_preds, test_set)])
+        test_preds0, test_preds1 = self._test_predictions(train_set, test_set, input_ph, model)
+        num_correct0 = sum([pred == sample[1] for pred, sample in zip(test_preds0, test_set)])
+        num_correct1 = sum([pred == sample[1] for pred, sample in zip(test_preds1, test_set)])
         self._full_state.import_variables(old_vars)
-        return num_correct
+        return num_correct0, num_correct1
 
-    def _test_predictions(self, train_set, test_set, input_ph, predictions):
+    def _test_predictions(self, train_set, test_set, input_ph, model):
         if self._transductive:
             inputs, _ = zip(*test_set)
-            return self.session.run(predictions, feed_dict={input_ph: inputs})
-        res = []
+            return self.session.run([model.predictions0, model.predictions1],
+                                    feed_dict={input_ph: inputs})
+        res0 = []
+        res1 = []
         for test_sample in test_set:
             inputs, _ = zip(*train_set)
             inputs += (test_sample[0],)
-            res.append(self.session.run(predictions, feed_dict={input_ph: inputs})[-1])
-        return res
+            pred0, pred1 = self.session.run([model.predictions0, model.predictions1],
+                                            feed_dict={input_ph: inputs})
+            res0.append(pred0[-1])
+            res1.append(pred1[-1])
+        return res0, res1
+
 
 class FOML(Reptile):
     """
@@ -206,6 +214,7 @@ class FOML(Reptile):
         for batch in _mini_batches(train, inner_batch_size, inner_iters - 1, replacement):
             yield batch
         yield tail
+
 
 def _sample_mini_dataset(dataset, num_classes, num_shots):
     """

@@ -14,7 +14,7 @@ NUM_COLUMNS = 2
 
 
 class ProgressiveOmniglotColumn:
-    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
+    def __init__(self, x, label_ph, num_classes, laterals_in=None, lateral_map=None):
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
@@ -37,7 +37,8 @@ class ProgressiveOmniglotColumn:
         x = self.convToConvAdapter(out2, laterals_in[2])
         out3 = self.convModule(x)
         x = self.convToLinearAdapter(out3, laterals_in[3])
-        self.logits, self.label_ph, self.loss, self.predictions = self.linearModule(x)
+        self.label_ph = label_ph
+        self.logits, self.loss, self.predictions = self.linearModule(x)
 
         self.laterals = {
             0: out0,
@@ -56,11 +57,10 @@ class ProgressiveOmniglotColumn:
     def linearModule(self, x):
         with tf.name_scope('LinMod'):
             logits = tf.layers.dense(x, self.num_classes)
-            label_ph = tf.placeholder(tf.int32, shape=(None,))
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label_ph,
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.label_ph,
                                                                   logits=logits)
             predictions = tf.argmax(logits, axis=-1)
-        return logits, label_ph, loss, predictions
+        return logits, loss, predictions
 
     def convToConvAdapter(self, x, laterals):
         with tf.name_scope('C2CAdapt'):
@@ -88,7 +88,7 @@ class ProgressiveOmniglotColumn:
 
 
 class ProgressiveMiniImageNetColumn:
-    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
+    def __init__(self, x, label_ph, num_classes, laterals_in=None, lateral_map=None):
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
@@ -111,7 +111,8 @@ class ProgressiveMiniImageNetColumn:
         x = self.convToConvAdapter(out2, laterals_in[2])
         out3 = self.convModule(x)
         x = self.convToLinearAdapter(out3, laterals_in[3])
-        self.logits, self.label_ph, self.loss, self.predictions = self.linearModule(x)
+        self.label_ph = label_ph
+        self.logits, self.loss, self.predictions = self.linearModule(x)
 
         self.laterals = {
             0: out0,
@@ -131,11 +132,10 @@ class ProgressiveMiniImageNetColumn:
     def linearModule(self, x):
         with tf.name_scope('LinMod'):
             logits = tf.layers.dense(x, self.num_classes)
-            label_ph = tf.placeholder(tf.int32, shape=(None,))
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label_ph,
+            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.label_ph,
                                                                   logits=logits)
             predictions = tf.argmax(logits, axis=-1)
-        return logits, label_ph, loss, predictions
+        return logits, loss, predictions
 
     def convToConvAdapter(self, x, laterals):
         with tf.name_scope('C2CAdapt'):
@@ -175,13 +175,16 @@ def merge_laterals(laterals_list):
     return out
 
 
-def minimize_op(loss, optimizer, var_scope0, var_scope1, learning_rate0, learning_rate1, **optim_kwargs):
+def minimize_op(loss0, loss1, optimizer, var_scope0, var_scope1,
+                learning_rate0, learning_rate1, **optim_kwargs):
     with tf.name_scope('Opt0'):
         col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=var_scope0)
-        minimize_op0 = optimizer(learning_rate0, **optim_kwargs).minimize(loss, var_list=col0_vars)
+        minimize_op0 = optimizer(learning_rate0, **optim_kwargs).minimize(loss0,
+                                                                          var_list=col0_vars)
     with tf.name_scope('Opt1'):
         col1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=var_scope1)
-        minimize_op1 = optimizer(learning_rate1, **optim_kwargs).minimize(loss, var_list=col1_vars)
+        minimize_op1 = optimizer(learning_rate1, **optim_kwargs).minimize(loss1,
+                                                                          var_list=col1_vars)
     with tf.control_dependencies([minimize_op0, minimize_op1]):
         return tf.no_op()
 
@@ -196,19 +199,26 @@ class ProgressiveOmniglotModel:
         assert len(lateral_map) == (NUM_LAYERS - 1) * NUM_COLUMNS * (NUM_COLUMNS - 1) / 2
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 28, 28))
         self.input = tf.reshape(self.input_ph, (-1, 28, 28, 1))
+        self.label_ph = tf.placeholder(tf.int32, shape=(None,))
         with tf.name_scope('Net'):
             with tf.variable_scope('Col0Vars'):
-                self.column0 = ProgressiveOmniglotColumn(self.input, num_classes)
+                self.column0 = ProgressiveOmniglotColumn(self.input, self.label_ph, num_classes)
             laterals1 = merge_laterals([self.column0.laterals])
             with tf.variable_scope('Col1Vars'):
                 self.column1 = ProgressiveOmniglotColumn(
-                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
+                    self.input, self.label_ph, num_classes, laterals1,
+                    lateral_map[0:NUM_LAYERS - 1]
                 )
-        self.logits = self.column1.logits
-        self.label_ph = self.column1.label_ph
-        self.loss = self.column1.loss
-        self.predictions = self.column1.predictions
-        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+
+        self.logits0 = self.column0.logits
+        self.loss0 = self.column0.loss
+        self.predictions0 = self.column0.predictions
+
+        self.logits1 = self.column1.logits
+        self.loss1 = self.column1.loss
+        self.predictions1 = self.column1.predictions
+        self.minimize_op = minimize_op(self.loss0, self.loss1, optimizer,
+                                       'Col0Vars', 'Col1Vars', **optim_kwargs)
 
 
 # pylint: disable=R0903
@@ -220,17 +230,23 @@ class ProgressiveMiniImageNetModel:
         assert len(lateral_map) == (NUM_LAYERS - 1) * NUM_COLUMNS * (NUM_COLUMNS - 1) / 2
         self.input_ph = tf.placeholder(tf.float32, shape=(None, 84, 84, 3)) 
         self.input = self.input_ph
+        self.label_ph = tf.placeholder(tf.int32, shape=(None,))
         with tf.name_scope('Net'):
             with tf.variable_scope('Col0Vars'):
-                self.column0 = ProgressiveMiniImageNetColumn(self.input, num_classes)
+                self.column0 = ProgressiveMiniImageNetColumn(self.input, self.label_ph, num_classes)
             laterals1 = merge_laterals([self.column0.laterals])
             with tf.variable_scope('Col1Vars'):
                 self.column1 = ProgressiveMiniImageNetColumn(
-                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
+                    self.input, self.label_ph, num_classes, laterals1,
+                    lateral_map[0:NUM_LAYERS - 1]
                 )
-        self.logits = self.column1.logits
-        self.label_ph = self.column1.label_ph
-        self.loss = self.column1.loss
-        self.predictions = self.column1.predictions
-        self.minimize_op = minimize_op(self.loss, optimizer, 'Col0Vars', 'Col1Vars', **optim_kwargs)
+        self.logits0 = self.column0.logits
+        self.loss0 = self.column0.loss
+        self.predictions0 = self.column0.predictions
+
+        self.logits1 = self.column1.logits
+        self.loss1 = self.column1.loss
+        self.predictions1 = self.column1.predictions
+        self.minimize_op = minimize_op(self.loss0, self.loss1, optimizer,
+                                       'Col0Vars', 'Col1Vars', **optim_kwargs)
 
