@@ -14,6 +14,7 @@ from supervised_reptile.models import ProgressiveMiniImageNetModel
 from supervised_reptile.miniimagenet import read_dataset
 from supervised_reptile.train import train
 
+
 def main():
     """
     Load data and train a model on it.
@@ -45,15 +46,19 @@ def main():
 
         print('Evaluating...')
         eval_kwargs = evaluate_kwargs(args)
+
         final_train_accuracy = evaluate(sess, model, train_set, **eval_kwargs)
-        final_val_accuracy = evaluate(sess, model, val_set, **eval_kwargs)
-        final_test_accuracy = evaluate(sess, model, test_set, **eval_kwargs)
         print('final_train_accuracy:', final_train_accuracy)
-        print('final_val_accuracy:', final_val_accuracy)
-        print('final_test_accuracy:', final_test_accuracy)
         final_train_channel.send(final_train_accuracy)
+
+        final_val_accuracy = evaluate(sess, model, val_set, **eval_kwargs)
+        print('final_val_accuracy:', final_val_accuracy)
         final_val_channel.send(final_val_accuracy)
+
+        final_test_accuracy = evaluate(sess, model, test_set, **eval_kwargs)
+        print('final_test_accuracy:', final_test_accuracy)
         final_test_channel.send(final_test_accuracy)
+
 
 if __name__ == '__main__':
     main()

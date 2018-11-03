@@ -10,6 +10,7 @@ import tensorflow as tf
 
 from .reptile import Reptile, FOML
 
+
 def argument_parser():
     """
     Get an argument parser for a training script.
@@ -56,6 +57,7 @@ def argument_parser():
     parser.add_argument('--debug', help='quick training for debug', action='store_true')
     return parser
 
+
 def model_kwargs(parsed_args):
     """
     Build the kwargs for model constructors from the
@@ -69,6 +71,7 @@ def model_kwargs(parsed_args):
     if parsed_args.sgd:
         res['optimizer'] = tf.train.GradientDescentOptimizer
     return res
+
 
 def train_kwargs(parsed_args):
     """
@@ -94,6 +97,7 @@ def train_kwargs(parsed_args):
         'reptile_fn': _args_reptile(parsed_args)
     }
 
+
 def evaluate_kwargs(parsed_args):
     """
     Build kwargs for the evaluate() function from the
@@ -110,6 +114,7 @@ def evaluate_kwargs(parsed_args):
         'transductive': parsed_args.transductive,
         'reptile_fn': _args_reptile(parsed_args)
     }
+
 
 def default_args():
     return {
@@ -168,6 +173,7 @@ def create_omniglot_mode(shots, classes, transductive):
         'meta_iters': 100000 if cl5 else 200000,
         'eval_batch': 5 if cl5 else 10,
     }
+
 
 def create_miniimagenet_mode(shots, transductive):
     assert shots in [1, 5]
@@ -240,3 +246,5 @@ def _args_reptile(parsed_args):
     if parsed_args.foml:
         return partial(FOML, tail_shots=parsed_args.foml_tail)
     return Reptile
+
+
