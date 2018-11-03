@@ -8,13 +8,13 @@ from spec_utils import get_git_head_info, get_combinations
 # Starting name with (approximate) date of run is also helpful.
 
 def create_experiment_for_spec(parameters):
-    script = 'run_omniglot.py'
+    script = 'run_miniimagenet.py'
     # this will be also displayed in jobs on prometheus
     name = 'two_columns'
     project_name = "deepsense-ai-research/meta-learning-reptile"
     python_path = '.:specs'
     paths_to_dump = ''  # e.g. 'plgrid tensor2tensor', do we need it?
-    tags = 'pretrained_column pretraining_col0'.split(' ')
+    tags = 'pretrained_column pretraining_col1'.split(' ')
     parameters['git_head'] = get_git_head_info()
     modes = ['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t',
              'm15', 'm15t', 'm55', 'm55t']
@@ -29,11 +29,9 @@ def create_experiment_for_spec(parameters):
 # Set params_configurations, eg. as combinations of grid.
 # params are also good place for e.g. output path, or git hash
 params_grid = dict(
-    omniglot_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/omniglot'],
-    pretrained_column_src =['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained/col0'],
-    mode=['o15', 'o15t', 'o55', 'o55t', 'o120', 'o120t', 'o520', 'o520t'],
-    learning_rate0=[0.001],
-    learning_rate1=[0.001],
+    miniimagenet_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
+    pretrained_column_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained/col1'],
+    mode=['m15', 'm15t', 'm55', 'm55t'],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)

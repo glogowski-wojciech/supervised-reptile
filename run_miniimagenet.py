@@ -24,7 +24,7 @@ def main():
     final_val_channel = context.create_channel('final_val_accuracy', neptune.ChannelType.NUMERIC)
     final_test_channel = context.create_channel('final_test_accuracy', neptune.ChannelType.NUMERIC)
     args = neptune_args(context)
-    print('args:', args)
+    print('args:\n', args)
     random.seed(args.seed)
     pretrained_column_dir = os.path.join(args.pretrained_column_src, args.checkpoint)
 

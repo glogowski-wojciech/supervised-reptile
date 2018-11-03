@@ -32,8 +32,6 @@ params_grid = dict(
     miniimagenet_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/miniimagenet'],
     pretrained_column_src=['/net/archive/groups/plggluna/wglogowski/tensorflow/pretrained/col0'],
     mode=['m15', 'm15t', 'm55', 'm55t'],
-    learning_rate0=[0.001],
-    learning_rate1=[0.001],
     eval_interval=[100],
 )
 params_configurations = get_combinations(params_grid)

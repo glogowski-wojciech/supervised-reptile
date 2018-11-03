@@ -161,7 +161,8 @@ def create_omniglot_mode(shots, classes, transductive):
         'meta_step_final': 0.0,
         'meta_batch': 5,
         'eval_iters': 50,
-        # 'learning_rate': 0.001 if cl5 else 0.0005,
+        'learning_rate0': 0.001 if cl5 else 0.0005,
+        'learning_rate1': 0.001 if cl5 else 0.0005,
         'inner_batch': 10 if cl5 else 20,
         'inner_iters': 5 if cl5 else 10,
         'meta_iters': 100000 if cl5 else 200000,
@@ -180,7 +181,8 @@ def create_miniimagenet_mode(shots, transductive):
         'shots': shots,
         'checkpoint': 'ckpt_' + name,
         'transductive': transductive,
-        # 'learning_rate': 0.001,
+        'learning_rate0': 0.001,
+        'learning_rate1': 0.001,
         'inner_batch': 10,
         'inner_iters': 8,
         'train_shots': 15,
@@ -193,8 +195,8 @@ def create_miniimagenet_mode(shots, transductive):
     }
 
 
-def update_with_mode(args, neptune_context):
-    mode = args['mode']
+def update_with_mode(params, args, neptune_context):
+    mode = params['mode']
     modes = {}
     for shots in [1, 5]:
         for classes in [5, 20]:
@@ -208,7 +210,11 @@ def update_with_mode(args, neptune_context):
     if mode in modes.keys():
         args.update(modes[mode])
         neptune_context.tags.append(mode)
-    if args['debug']:
+    return args
+
+
+def update_with_debug(params, args, neptune_context):
+    if 'debug' in params and params['debug']:
         args['meta_iters'] = 8
         args['eval_samples'] = 20
         args['eval_interval'] = 4
@@ -217,11 +223,16 @@ def update_with_mode(args, neptune_context):
 
 
 def neptune_args(neptune_context):
-    params = neptune_context.params
+    npt_params = neptune_context.params
+    params = {}
+    for param in npt_params:
+        params[param] = npt_params[param]
     args = default_args()
+    args = update_with_mode(params, args, neptune_context)
     for param in params:
         args[param] = params[param]
-    args = update_with_mode(args, neptune_context)
+    args = update_with_debug(params, args, neptune_context)
+
     return bunch.Bunch(args)
 
 
