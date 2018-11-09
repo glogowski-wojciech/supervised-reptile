@@ -36,8 +36,11 @@ def argument_parser():
         '0 to 1 (0->1), then 4 bits per each of connections (0->2), ..., (0->num_col-1), (1->2), ' +
         '(1->3), ..., (1->num_col-1), ..., num_col-2->num_col-1.', default='xxxx'
     )
-    parser.add_argument('--meta-step', help='meta-training step size', default=0.1, type=float)
-    parser.add_argument('--meta-step-final', help='meta-training step size by the end',
+    parser.add_argument('--meta-step0', help='meta-training step size for column 0', default=0.1, type=float)
+    parser.add_argument('--meta-step1', help='meta-training step size for columns 1', default=0.1, type=float)
+    parser.add_argument('--meta-step-final0', help='meta-training step size for column 0 by the end',
+                        default=0.1, type=float)
+    parser.add_argument('--meta-step-final1', help='meta-training step size for column 1 by the end',
                         default=0.1, type=float)
     parser.add_argument('--meta-batch', help='meta-training batch size', default=1, type=int)
     parser.add_argument('--meta-iters', help='meta-training iterations', default=400000, type=int)
@@ -84,8 +87,10 @@ def train_kwargs(parsed_args):
         'inner_batch_size': parsed_args.inner_batch,
         'inner_iters': parsed_args.inner_iters,
         'replacement': parsed_args.replacement,
-        'meta_step_size': parsed_args.meta_step,
-        'meta_step_size_final': parsed_args.meta_step_final,
+        'meta_step_size0': parsed_args.meta_step0,
+        'meta_step_size1': parsed_args.meta_step1,
+        'meta_step_size_final0': parsed_args.meta_step_final0,
+        'meta_step_size_final1': parsed_args.meta_step_final1,
         'meta_batch_size': parsed_args.meta_batch,
         'meta_iters': parsed_args.meta_iters,
         'eval_inner_batch_size': parsed_args.eval_batch,
@@ -129,8 +134,10 @@ def default_args():
         'learning_rate0': 1e-3,
         'learning_rate1': 1e-3,
         'lateral_map': 'xxxx',
-        'meta_step': 0.1,
-        'meta_step_final': 0.1,
+        'meta_step0': 0.1,
+        'meta_step1': 0.1,
+        'meta_step_final0': 0.1,
+        'meta_step_final1': 0.1,
         'meta_batch': 1,
         'meta_iters': 400000,
         'eval_batch': 5,
@@ -161,8 +168,10 @@ def create_omniglot_mode(shots, classes, transductive):
         'checkpoint': 'ckpt_' + name,
         'transductive': transductive,
         'train_shots': 10,
-        'meta_step': 1.0,
-        'meta_step_final': 0.0,
+        'meta_step0': 1.0,
+        'meta_step1': 1.0,
+        'meta_step_final0': 0.0,
+        'meta_step_final1': 0.0,
         'meta_batch': 5,
         'eval_iters': 50,
         'learning_rate0': 0.001 if cl5 else 0.0005,
@@ -191,8 +200,10 @@ def create_miniimagenet_mode(shots, transductive):
         'inner_batch': 10,
         'inner_iters': 8,
         'train_shots': 15,
-        'meta_step': 1.0,
-        'meta_step_final': 0.0,
+        'meta_step0': 1.0,
+        'meta_step1': 1.0,
+        'meta_step_final0': 0.0,
+        'meta_step_final1': 0.0,
         'meta_iters': 100000,
         'meta_batch': 5,
         'eval_iters': 50,

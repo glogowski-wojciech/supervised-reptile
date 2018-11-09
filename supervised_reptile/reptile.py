@@ -19,9 +19,14 @@ class Reptile:
     allowed to leak between test samples via BatchNorm.
     Typically, MAML is used in a transductive manner.
     """
-    def __init__(self, session, variables=None, transductive=False, pre_step_op=None):
+    def __init__(self, session, transductive=False, pre_step_op=None):
         self.session = session
-        self._model_state = VariableState(self.session, variables or tf.trainable_variables())
+        col0_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='Col0Vars')
+        col1_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='Col1Vars')
+        self._col0_state = VariableState(self.session, col0_vars)
+        self._col1_state = VariableState(self.session, col1_vars)
+        self._full_state = VariableState(self.session,
+                                         tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
         self._full_state = VariableState(self.session,
                                          tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
         self._transductive = transductive
@@ -38,7 +43,8 @@ class Reptile:
                    inner_batch_size,
                    inner_iters,
                    replacement,
-                   meta_step_size,
+                   meta_step_size0,
+                   meta_step_size1,
                    meta_batch_size):
         """
         Perform a Reptile training step.
@@ -56,11 +62,14 @@ class Reptile:
             training iteration.
           inner_iters: number of inner-loop iterations.
           replacement: sample with replacement.
-          meta_step_size: interpolation coefficient.
+          meta_step_size0: interpolation coefficient for column 0.
+          meta_step_size1: interpolation coefficient for column 1.
           meta_batch_size: how many inner-loops to run.
         """
-        old_vars = self._model_state.export_variables()
-        new_vars = []
+        old_vars0 = self._col0_state.export_variables()
+        old_vars1 = self._col1_state.export_variables()
+        new_vars0 = []
+        new_vars1 = []
         for _ in range(meta_batch_size):
             mini_dataset = _sample_mini_dataset(dataset, num_classes, num_shots)
             for batch in _mini_batches(mini_dataset, inner_batch_size, inner_iters, replacement):
@@ -68,10 +77,14 @@ class Reptile:
                 if self._pre_step_op:
                     self.session.run(self._pre_step_op)
                 self.session.run(minimize_op, feed_dict={input_ph: inputs, label_ph: labels})
-            new_vars.append(self._model_state.export_variables())
-            self._model_state.import_variables(old_vars)
-        new_vars = average_vars(new_vars)
-        self._model_state.import_variables(interpolate_vars(old_vars, new_vars, meta_step_size))
+            new_vars0.append(self._col0_state.export_variables())
+            new_vars1.append(self._col1_state.export_variables())
+            self._col0_state.import_variables(old_vars0)
+            self._col1_state.import_variables(old_vars1)
+        new_vars0 = average_vars(new_vars0)
+        new_vars1 = average_vars(new_vars1)
+        self._col0_state.import_variables(interpolate_vars(old_vars0, new_vars0, meta_step_size0))
+        self._col1_state.import_variables(interpolate_vars(old_vars1, new_vars1, meta_step_size1))
 
     def evaluate(self,
                  dataset,

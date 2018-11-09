@@ -21,8 +21,10 @@ def train(sess,
           inner_batch_size=5,
           inner_iters=20,
           replacement=False,
-          meta_step_size=0.1,
-          meta_step_size_final=0.1,
+          meta_step_size0=0.1,
+          meta_step_size1=0.1,
+          meta_step_size_final0=0.1,
+          meta_step_size_final1=0.1,
           meta_batch_size=1,
           meta_iters=400000,
           eval_inner_batch_size=5,
@@ -52,12 +54,14 @@ def train(sess,
     sess.run(tf.global_variables_initializer())
     for i in range(meta_iters):
         frac_done = i / meta_iters
-        cur_meta_step_size = frac_done * meta_step_size_final + (1 - frac_done) * meta_step_size
+        cur_meta_step_size0 = frac_done * meta_step_size_final0 + (1 - frac_done) * meta_step_size0
+        cur_meta_step_size1 = frac_done * meta_step_size_final1 + (1 - frac_done) * meta_step_size1
         reptile.train_step(train_set, model.input_ph, model.label_ph, model.minimize_op,
                            num_classes=num_classes, num_shots=(train_shots or num_shots),
                            inner_batch_size=inner_batch_size, inner_iters=inner_iters,
                            replacement=replacement,
-                           meta_step_size=cur_meta_step_size, meta_batch_size=meta_batch_size)
+                           meta_step_size0=cur_meta_step_size0,
+                           meta_step_size1=cur_meta_step_size1, meta_batch_size=meta_batch_size)
         if i % eval_interval == 0:
             accuracies = []
             for dataset, writer in [(train_set, train_writer), (test_set, test_writer)]:
