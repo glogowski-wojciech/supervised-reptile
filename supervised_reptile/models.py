@@ -14,7 +14,7 @@ NUM_COLUMNS = 2
 
 
 class ProgressiveOmniglotColumn:
-    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
+    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None, last_column=True):
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
@@ -34,10 +34,13 @@ class ProgressiveOmniglotColumn:
         out1 = self.convModule(x)
         x = self.convToConvAdapter(out1, laterals_in[1])
         out2 = self.convModule(x)
-        x = self.convToConvAdapter(out2, laterals_in[2])
-        out3 = self.convModule(x)
-        x = self.convToLinearAdapter(out3, laterals_in[3])
-        self.logits, self.label_ph, self.loss, self.predictions = self.linearModule(x)
+        if last_column:
+            x = self.convToConvAdapter(out2, laterals_in[2])
+            out3 = self.convModule(x)
+            x = self.convToLinearAdapter(out3, laterals_in[3])
+            self.logits, self.label_ph, self.loss, self.predictions = self.linearModule(x)
+        else:
+            out3 = None
 
         self.laterals = {
             0: out0,
@@ -48,7 +51,7 @@ class ProgressiveOmniglotColumn:
 
     def convModule(self, x):
         with tf.name_scope('ConvMod'):
-            out = tf.layers.conv2d(x, 36, 3, strides=2, padding='same')
+            out = tf.layers.conv2d(x, 41, 3, strides=2, padding='same')
             out = tf.layers.batch_normalization(out, training=True)
             out = tf.nn.relu(out)
             return out
@@ -68,7 +71,7 @@ class ProgressiveOmniglotColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 3)
-            lateral = tf.layers.conv2d(lateral, 36, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 41, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             out = tf.concat([x, lateral], 3)
             return out
@@ -80,7 +83,7 @@ class ProgressiveOmniglotColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 1)
-            lateral = tf.layers.conv2d(lateral, 36, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 41, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             lateral = tf.reshape(lateral, (-1, int(np.prod(lateral.get_shape()[1:]))))
             out = tf.concat([x, lateral], 1)
@@ -88,7 +91,7 @@ class ProgressiveOmniglotColumn:
 
 
 class ProgressiveMiniImageNetColumn:
-    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None):
+    def __init__(self, x, num_classes, laterals_in=None, lateral_map=None, last_column=True):
         self.outputs = {-1: x}
         self.num_classes = num_classes
 
@@ -108,10 +111,13 @@ class ProgressiveMiniImageNetColumn:
         out1 = self.convModule(x)
         x = self.convToConvAdapter(out1, laterals_in[1])
         out2 = self.convModule(x)
-        x = self.convToConvAdapter(out2, laterals_in[2])
-        out3 = self.convModule(x)
-        x = self.convToLinearAdapter(out3, laterals_in[3])
-        self.logits, self.label_ph, self.loss, self.predictions = self.linearModule(x)
+        if last_column:
+            x = self.convToConvAdapter(out2, laterals_in[2])
+            out3 = self.convModule(x)
+            x = self.convToLinearAdapter(out3, laterals_in[3])
+            self.logits, self.label_ph, self.loss, self.predictions = self.linearModule(x)
+        else:
+            out3 = None
 
         self.laterals = {
             0: out0,
@@ -122,7 +128,7 @@ class ProgressiveMiniImageNetColumn:
 
     def convModule(self, x):
         with tf.name_scope('ConvMod'):
-            out = tf.layers.conv2d(x, 18, 3, padding='same')
+            out = tf.layers.conv2d(x, 21, 3, padding='same')
             out = tf.layers.batch_normalization(out, training=True)
             out = tf.layers.max_pooling2d(out, 2, 2, padding='same')
             out = tf.nn.relu(out)
@@ -143,7 +149,7 @@ class ProgressiveMiniImageNetColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 3)
-            lateral = tf.layers.conv2d(lateral, 18, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 21, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             out = tf.concat([x, lateral], 3)
             return out
@@ -155,7 +161,7 @@ class ProgressiveMiniImageNetColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 1)
-            lateral = tf.layers.conv2d(lateral, 18, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 21, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             lateral = tf.reshape(lateral, (-1, int(np.prod(lateral.get_shape()[1:]))))
             out = tf.concat([x, lateral], 1)
@@ -198,11 +204,14 @@ class ProgressiveOmniglotModel:
         self.input = tf.reshape(self.input_ph, (-1, 28, 28, 1))
         with tf.name_scope('Net'):
             with tf.variable_scope('Col0Vars'):
-                self.column0 = ProgressiveOmniglotColumn(self.input, num_classes)
+                self.column0 = ProgressiveOmniglotColumn(
+                    self.input, num_classes, last_column=False
+                )
             laterals1 = merge_laterals([self.column0.laterals])
             with tf.variable_scope('Col1Vars'):
                 self.column1 = ProgressiveOmniglotColumn(
-                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
+                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1],
+                    last_column=True
                 )
         self.logits = self.column1.logits
         self.label_ph = self.column1.label_ph
@@ -222,11 +231,14 @@ class ProgressiveMiniImageNetModel:
         self.input = self.input_ph
         with tf.name_scope('Net'):
             with tf.variable_scope('Col0Vars'):
-                self.column0 = ProgressiveMiniImageNetColumn(self.input, num_classes)
+                self.column0 = ProgressiveMiniImageNetColumn(
+                    self.input, num_classes, last_column=False
+                )
             laterals1 = merge_laterals([self.column0.laterals])
             with tf.variable_scope('Col1Vars'):
                 self.column1 = ProgressiveMiniImageNetColumn(
-                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1]
+                    self.input, num_classes, laterals1, lateral_map[0:NUM_LAYERS - 1],
+                    last_column=True
                 )
         self.logits = self.column1.logits
         self.label_ph = self.column1.label_ph
