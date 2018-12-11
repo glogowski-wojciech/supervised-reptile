@@ -48,7 +48,7 @@ class ProgressiveOmniglotColumn:
 
     def convModule(self, x):
         with tf.name_scope('ConvMod'):
-            out = tf.layers.conv2d(x, 64, 3, strides=2, padding='same')
+            out = tf.layers.conv2d(x, 36, 3, strides=2, padding='same')
             out = tf.layers.batch_normalization(out, training=True)
             out = tf.nn.relu(out)
             return out
@@ -68,7 +68,7 @@ class ProgressiveOmniglotColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 3)
-            lateral = tf.layers.conv2d(lateral, 64, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 36, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             out = tf.concat([x, lateral], 3)
             return out
@@ -80,7 +80,7 @@ class ProgressiveOmniglotColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 1)
-            lateral = tf.layers.conv2d(lateral, 64, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 36, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             lateral = tf.reshape(lateral, (-1, int(np.prod(lateral.get_shape()[1:]))))
             out = tf.concat([x, lateral], 1)
@@ -122,7 +122,7 @@ class ProgressiveMiniImageNetColumn:
 
     def convModule(self, x):
         with tf.name_scope('ConvMod'):
-            out = tf.layers.conv2d(x, 32, 3, padding='same')
+            out = tf.layers.conv2d(x, 18, 3, padding='same')
             out = tf.layers.batch_normalization(out, training=True)
             out = tf.layers.max_pooling2d(out, 2, 2, padding='same')
             out = tf.nn.relu(out)
@@ -143,7 +143,7 @@ class ProgressiveMiniImageNetColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 3)
-            lateral = tf.layers.conv2d(lateral, 32, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 18, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             out = tf.concat([x, lateral], 3)
             return out
@@ -155,7 +155,7 @@ class ProgressiveMiniImageNetColumn:
                 return x
             scaled_laterals = [tf.Variable(1.0) * lateral for lateral in laterals]
             lateral = tf.concat(scaled_laterals, 1)
-            lateral = tf.layers.conv2d(lateral, 32, 1, padding='same')
+            lateral = tf.layers.conv2d(lateral, 18, 1, padding='same')
             lateral = tf.nn.relu(lateral)
             lateral = tf.reshape(lateral, (-1, int(np.prod(lateral.get_shape()[1:]))))
             out = tf.concat([x, lateral], 1)
